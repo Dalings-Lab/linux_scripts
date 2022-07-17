@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Update server
-apt update
-apt -y upgrade
-
 # Vars
 echo "Input server name:"
 read varname
@@ -11,17 +7,32 @@ read varname
 echo "Your IP address:"
 read varip
 
+# Update server
+apt update
+apt -y upgrade
+
 # Install
-apt -y install strongswan
-apt -y install libstrongswan-standard-plugins
-apt -y install strongswan-pki
-apt -y install zsh
+apt -y install \
+strongswan \
+libstrongswan-standard-plugins \
+strongswan-pki \
+wget \
+zsh
 
 # Iptables install
 apt -y install debconf-utils
 echo iptables-persistent iptables-persistent/autosave_v4 boolean false | debconf-set-selections
 echo iptables-persistent iptables-persistent/autosave_v6 boolean false | debconf-set-selections
 apt -y install iptables-persistent
+
+# Remember dir
+vardir=$(pwd)
+echo "$vardir"
+
+#1.0 Config for apple
+wget https://raw.githubusercontent.com/Dalings-Lab/linux_scripts/main/vpn_server/mobileconfig.sh
+sed -i '/AWS Frankfurt/s/AWS Frankfurt/'$varname'/g' mobileconfig.sh
+sed -i '/YOUR_LIGHTSAIL_IP/s/YOUR_LIGHTSAIL_IP/'$varip'/g' mobileconfig.sh
 
 # Create CA Certificate
 cd /etc/ipsec.d
@@ -99,7 +110,7 @@ iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
 iptables -F
 iptables -Z
-tables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -p udp --dport  500 -j ACCEPT
@@ -114,12 +125,9 @@ iptables -A FORWARD -j DROP
 netfilter-persistent save
 netfilter-persistent reload
 
-# Config for apple
-
-
-echo "$varaconf" > mobileconfig.sh
-chmod u+x mobileconfig.sh
-./mobileconfig.sh > iphone.mobileconfig
+#1.1 Config for apple
+sleep 5
+zsh ${vardir}/mobileconfig.sh > ${vardir}/iphone.mobileconfig
 
 reboot
 exit
