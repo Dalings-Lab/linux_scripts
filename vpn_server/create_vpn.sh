@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#Private
+
 # Vars
 echo "Input server name:"
 read varname
