@@ -128,6 +128,8 @@ netfilter-persistent reload
 #1.1 Config for apple
 sleep 5
 zsh ${vardir}/mobileconfig.sh > ${vardir}/iphone.mobileconfig
+sleep 5
+rm mobileconfig.sh
 
 reboot
 exit
